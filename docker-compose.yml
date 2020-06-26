@@ -1,0 +1,49 @@
+version: "3.7"
+
+services:
+  dbe_apache2:
+    build:
+      dockerfile: Dockerfile
+      context: ./docker/apache2
+    image: dbe/apache2
+    container_name: dbe_apache2
+    ports:
+      - 80:80
+    restart: unless-stopped
+    volumes:
+      - ./docker/logs/apache2:/var/apache_logs/
+      - ./src:/var/www/html
+    networks:
+      - dbe
+
+  dbe_phpfpm:
+    build:
+      dockerfile: Dockerfile
+      context: ./docker/phpfpm
+    image: dbe/phpfpm
+    container_name: dbe_phpfpm
+    user: "${DOCKER_LOCAL_USER:-1000}:${DOCKER_LOCAL_GROUP:-1000}"
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - dbe
+
+  dbe_mysql:
+    image: mysql:5.7
+    container_name: dbe_mysql
+    restart: unless-stopped
+    networks:
+      - dbe
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - docebo:/var/lib/mysql
+
+networks:
+  dbe:
+    name: dbe
+
+volumes:
+  docebo:
