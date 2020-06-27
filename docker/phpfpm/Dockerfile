@@ -19,7 +19,8 @@ RUN docker-php-ext-install bcmath \
     && docker-php-ext-install ctype\
     && docker-php-ext-install json \
     && docker-php-ext-install tokenizer \
-    && docker-php-ext-install mbstring
+    && docker-php-ext-install mbstring \
+    && docker-php-ext-install mysqli
 
 # copy php custom ini file
 COPY ./custom.ini /usr/local/etc/php/conf.d/custom.ini
