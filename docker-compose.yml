@@ -22,7 +22,6 @@ services:
       context: ./docker/phpfpm
     image: dbe/phpfpm
     container_name: dbe_phpfpm
-    user: "${DOCKER_LOCAL_USER:-1000}:${DOCKER_LOCAL_GROUP:-1000}"
     volumes:
       - ./src:/var/www/html
     networks:
