@@ -32,4 +32,18 @@ class Db
             $this->db = null;
         }
     }
+
+    /**
+     * Check if nodeId exists in the node_tree table
+     * @param $nodeId
+     * @return bool
+     */
+    public function nodeIdExists($nodeId)
+    {
+        // query the database to get the number of rows having idNode equals to the param
+        $q_res = $this->db->query("SELECT idNode FROM node_tree WHERE idNode = {$nodeId}");
+
+        // return true if there is at least 1 result
+        return $q_res->num_rows > 0;
+    }
 }

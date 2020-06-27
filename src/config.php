@@ -9,4 +9,8 @@ return [
         'password' => 'password',
         'database' => 'docebo',
     ],
+    'api' => [
+        'default_page_num' => 0,
+        'default_page_size' => 100,
+    ],
 ];

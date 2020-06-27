@@ -17,19 +17,44 @@ class Request
     }
 
     /**
-     * Print the error and exit
-     * @param int $response_code
-     * @param string|null $response_msg
+     * Print the output
+     * @param array $data
      */
-    public function error($response_code, $response_msg = null)
+    protected function output($data)
+    {
+        // json output
+        header('Content-Type: application/json');
+
+        // output the data
+        echo json_encode($data);
+    }
+
+    /**
+     * Print the error and exit
+     * @param int $response_code Http error code
+     * @param string|null $msg Error message
+     */
+    public function httpError($response_code, $msg = null)
     {
         http_response_code($response_code);
-        $msg = "error {$response_code}";
-        if (!empty($msg)) {
-            $msg .= ': ' . $response_msg;
+        $output = "error {$response_code}";
+        if (!empty($output)) {
+            $output .= ': ' . $msg;
         }
-        echo $msg;
+        echo $output;
         exit;
+    }
+
+    /**
+     * Print the error in json format
+     * @param string $msg Error message
+     */
+    public function jsonError($msg)
+    {
+        $this->output([
+            'nodes' => [],
+            'error' => $msg,
+        ]);
     }
 
     /**
@@ -39,7 +64,7 @@ class Request
     public function checkMethod($method)
     {
         if ($_SERVER['REQUEST_METHOD'] !== $method) {
-            $this->error(405, 'method not allowed');
+            $this->httpError(405, 'method not allowed');
         }
     }
 
@@ -49,41 +74,71 @@ class Request
      */
     protected function getParams()
     {
-        return [
-            'nodeId' => isset($_GET['node_id']) ? $_GET['node_id'] : null,
+        // get the params from $_GET
+        $params = [
+            'nodeId' => isset($_GET['node_id']) && is_numeric($_GET['node_id']) ? $_GET['node_id'] : null,
             'language' => isset($_GET['language']) ? $_GET['language'] : null,
-            'searchKeyword' => isset($_GET['search_keyword']) ? $_GET['search_keyword'] : null,
-            'pageNum' => isset($_GET['page_num']) ? $_GET['page_num'] : 0,
-            'pageSize' => isset($_GET['page_size']) ? $_GET['page_size'] : 100,
+            'searchKeyword' => isset($_GET['search_keyword']) ? $_GET['search_keyword'] : '',
+            'pageNum' => isset($_GET['page_num']) ? $_GET['page_num'] : null,
+            'pageSize' => isset($_GET['page_size']) ? $_GET['page_size'] : null,
         ];
+
+        // default page_num value (will overwrite any non numeric value)
+        if(!is_numeric($params['pageNum'])) {
+            $params['pageNum'] = $this->api->config('api.default_page_num');
+        }
+
+        // default page_size value (will overwrite any non numeric value)
+        if(!is_numeric($params['pageSize'])) {
+            $params['pageSize'] = $this->api->config('api.default_page_size');
+        }
+
+        // convert params
+        $params['nodeId'] = intval($params['nodeId']);
+        $params['pageNum'] = intval($params['pageNum']);
+        $params['pageSize'] = intval($params['pageSize']);
+
+        // prevent sql injection
+        $db = $this->api->db()->db;
+        foreach($params as $param_key => $param_value) {
+            $params[$param_key] = $db->real_escape_string($param_value);
+        }
+
+        return $params;
     }
 
     /**
      * Validate request parameters
-     * @param array $params
-     * @return array Array of errors that occurs
+     * @param array $params Params to check
+     * @return string|null The error that occurred
      */
     protected function validateParams($params)
     {
-        $errors = [];
+        if(empty($params['nodeId']) || !is_numeric($params['nodeId'])) {
+            return 'Missing mandatory params';
+        }
 
-        if(!is_numeric($params['nodeId'])) {
-            $errors[] = 'nodeId must be a number';
+        if(!$this->api->db()->nodeIdExists($params['nodeId'])) {
+            return 'Invalid node id';
         }
 
         if($params['language'] !== 'english' && $params['language'] !== 'italian') {
-            $errors[] = 'language must be either \'english\' or \'italian\'';
+            return 'Missing mandatory params';
+        }
+
+        if(!is_numeric($params['pageNum'])) {
+            return 'Missing mandatory params';
         }
 
         if(!is_numeric($params['pageNum']) || $params['pageNum'] < 0) {
-            $errors[] = 'page_num must be a number';
+            return 'Invalid page number requested';
         }
 
         if($params['pageSize'] < 0 || $params['pageSize'] > 1000) {
-            $errors[] = 'page_size must be a number between 0 and 1000';
+            return 'Invalid page size requested';
         }
 
-        return $errors;
+        return null;
     }
 
     /**
@@ -92,37 +147,12 @@ class Request
     public function handle()
     {
         $params = $this->getParams();
-        $validateErrors = $this->validateParams($params);
+        $validateError = $this->validateParams($params);
 
-        // if any errors occur during validation then output them and stop handling the request
-        if(!empty($validateErrors)) {
-            $this->output([], implode(', ', $validateErrors));
+        // if a validation error occurred then output it and stop handling the request
+        if(!empty($validateError)) {
+            $this->jsonError($validateError);
             return;
         }
-    }
-
-    /**
-     * Print the output
-     * @param array $data
-     * @param string|null $error
-     */
-    protected function output($data, $error = null)
-    {
-        // result that will be echoed
-        $res = [];
-
-        // TODO: generalize the 'nodes' key
-        $res['nodes'] = $data;
-
-        // append errors to the result
-        if(!empty($error)) {
-            $res['error'] = $error;
-        }
-
-        // json output
-        header('Content-Type: application/json');
-
-        // output the data
-        echo json_encode($res);
     }
 }
