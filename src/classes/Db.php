@@ -12,7 +12,7 @@ class Db
      * Db constructor, connect to the database
      * @param array $cfg
      */
-    public function __construct(array $cfg)
+    public function __construct($cfg)
     {
         $this->db = new mysqli(
             $cfg['hostname'],

@@ -22,7 +22,7 @@ class Api
      * Api constructor.
      * @param array $config App configurations
      */
-    public function __construct(array $config)
+    public function __construct($config)
     {
         $this->config = $config;
         $this->db = new Db($config['db']);
@@ -44,7 +44,7 @@ class Api
     public function run()
     {
 
-        $this->request->check_method('GET');
+        $this->request->checkMethod('GET');
         $this->request->handle();
     }
 }
