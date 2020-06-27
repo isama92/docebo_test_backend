@@ -25,8 +25,13 @@ class Api
     public function __construct($config)
     {
         $this->config = $config;
-        $this->db = new Db($this->config('db'));
         $this->request = new Request($this);
+        $this->db = new Db($this->config('db'));
+
+        // on db connection error, print the error and exit
+        if($this->db->handler->connect_error) {
+            $this->request->httpError(500, 'Database error');
+        }
     }
 
     /**
