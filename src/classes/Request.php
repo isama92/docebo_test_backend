@@ -78,18 +78,18 @@ class Request
         $params = [
             'nodeId' => isset($_GET['node_id']) && is_numeric($_GET['node_id']) ? $_GET['node_id'] : null,
             'language' => isset($_GET['language']) ? $_GET['language'] : null,
-            'searchKeyword' => isset($_GET['search_keyword']) ? $_GET['search_keyword'] : '',
+            'searchKeyword' => isset($_GET['search_keyword']) ? $_GET['search_keyword'] : null,
             'pageNum' => isset($_GET['page_num']) ? $_GET['page_num'] : null,
             'pageSize' => isset($_GET['page_size']) ? $_GET['page_size'] : null,
         ];
 
         // default page_num value (will overwrite any non numeric value)
-        if(!is_numeric($params['pageNum'])) {
+        if (!is_numeric($params['pageNum'])) {
             $params['pageNum'] = $this->api->config('api.default_page_num');
         }
 
         // default page_size value (will overwrite any non numeric value)
-        if(!is_numeric($params['pageSize'])) {
+        if (!is_numeric($params['pageSize'])) {
             $params['pageSize'] = $this->api->config('api.default_page_size');
         }
 
@@ -100,7 +100,7 @@ class Request
 
         // prevent sql injection
         $db = $this->api->db()->handler;
-        foreach($params as $param_key => $param_value) {
+        foreach ($params as $param_key => $param_value) {
             $params[$param_key] = $db->real_escape_string($param_value);
         }
 
@@ -114,27 +114,23 @@ class Request
      */
     protected function validateParams($params)
     {
-        if(empty($params['nodeId']) || !is_numeric($params['nodeId'])) {
+        if (is_null($params['nodeId'])) {
             return 'Missing mandatory params';
         }
 
-        if(!$this->api->db()->nodeIdExists($params['nodeId'])) {
+        if (!$this->api->db()->nodeIdExists($params['nodeId'])) {
             return 'Invalid node id';
         }
 
-        if($params['language'] !== 'english' && $params['language'] !== 'italian') {
+        if ($params['language'] !== 'english' && $params['language'] !== 'italian') {
             return 'Missing mandatory params';
         }
 
-        if(!is_numeric($params['pageNum'])) {
-            return 'Missing mandatory params';
-        }
-
-        if(!is_numeric($params['pageNum']) || $params['pageNum'] < 0) {
+        if ($params['pageNum'] < 0) {
             return 'Invalid page number requested';
         }
 
-        if($params['pageSize'] < 0 || $params['pageSize'] > 1000) {
+        if ($params['pageSize'] < 0 || $params['pageSize'] > 1000) {
             return 'Invalid page size requested';
         }
 
@@ -150,9 +146,21 @@ class Request
         $validateError = $this->validateParams($params);
 
         // if a validation error occurred then output it and stop handling the request
-        if(!empty($validateError)) {
+        if (!empty($validateError)) {
             $this->jsonError($validateError);
             return;
         }
+
+        $nodes = $this->api->db()->getChildrenNodesByNode(
+            $params['nodeId'],
+            $params['language'],
+            $params['searchKeyword'],
+            $params['pageNum'],
+            $params['pageSize']
+        );
+
+        $output_data = ['nodes' => $nodes];
+        
+        $this->output($output_data);
     }
 }

@@ -1,0 +1,65 @@
+{
+	"info": {
+		"_postman_id": "6b7e7002-d150-488d-baa5-bc5b87f494b6",
+		"name": "Docebo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Test",
+			"item": [
+				{
+					"name": "Backend",
+					"item": [
+						{
+							"name": "api.php",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://backend.docebo.localhost/api.php?language=english&node_id=5&search_keyword=a&page_num=2&page_size=3",
+									"protocol": "http",
+									"host": [
+										"backend",
+										"docebo",
+										"localhost"
+									],
+									"path": [
+										"api.php"
+									],
+									"query": [
+										{
+											"key": "language",
+											"value": "english"
+										},
+										{
+											"key": "node_id",
+											"value": "5"
+										},
+										{
+											"key": "search_keyword",
+											"value": "a"
+										},
+										{
+											"key": "page_num",
+											"value": "2"
+										},
+										{
+											"key": "page_size",
+											"value": "3"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

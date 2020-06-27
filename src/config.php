@@ -8,6 +8,7 @@ return [
         'username' => 'root',
         'password' => 'password',
         'database' => 'docebo',
+        'charset' => 'utf8',
     ],
     'api' => [
         'default_page_num' => 0,
