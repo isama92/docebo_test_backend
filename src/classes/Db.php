@@ -4,9 +4,9 @@
 class Db
 {
     /**
-     * @var mysqli $db Database connection
+     * @var mysqli $handler Database connection
      */
-    public $db = null;
+    public $handler = null;
 
     /**
      * Db constructor, connect to the database
@@ -14,7 +14,7 @@ class Db
      */
     public function __construct($cfg)
     {
-        $this->db = new mysqli(
+        $this->handler = new mysqli(
             $cfg['hostname'],
             $cfg['username'],
             $cfg['password'],
@@ -27,9 +27,9 @@ class Db
      */
     public function __destruct()
     {
-        if ($this->db) {
-            $this->db->close();
-            $this->db = null;
+        if ($this->handler) {
+            $this->handler->close();
+            $this->handler = null;
         }
     }
 
@@ -41,7 +41,7 @@ class Db
     public function nodeIdExists($nodeId)
     {
         // query the database to get the number of rows having idNode equals to the param
-        $q_res = $this->db->query("SELECT idNode FROM node_tree WHERE idNode = {$nodeId}");
+        $q_res = $this->handler->query("SELECT idNode FROM node_tree WHERE idNode = {$nodeId}");
 
         // return true if there is at least 1 result
         return $q_res->num_rows > 0;

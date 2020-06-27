@@ -99,7 +99,7 @@ class Request
         $params['pageSize'] = intval($params['pageSize']);
 
         // prevent sql injection
-        $db = $this->api->db()->db;
+        $db = $this->api->db()->handler;
         foreach($params as $param_key => $param_value) {
             $params[$param_key] = $db->real_escape_string($param_value);
         }
