@@ -14,6 +14,11 @@ class Api
     protected $db = null;
 
     /**
+     * @var Request $request Http request
+     */
+    protected $request = null;
+
+    /**
      * Api constructor.
      * @param array $config App configurations
      */
@@ -21,34 +26,16 @@ class Api
     {
         $this->config = $config;
         $this->db = new Db($config['db']);
-    }
-
-
-    /**
-     * Print the error and exit
-     * @param int $response_code
-     * @param string|null $response_msg
-     */
-    protected function error($response_code, $response_msg = null)
-    {
-        http_response_code($response_code);
-        $msg = "error {$response_code}";
-        if(!empty($msg)) {
-            $msg .= ': ' . $response_msg;
-        }
-        echo $msg;
-        exit;
+        $this->request = new Request($this);
     }
 
     /**
-     * Dump a variable, testing purpose
-     * @param $v
+     * Get db
+     * @return Db
      */
-    protected function dump($v)
+    public function db()
     {
-        echo '<pre>';
-        var_dump($v);
-        echo '</pre>';
+        return $this->db;
     }
 
     /**
@@ -56,17 +43,8 @@ class Api
      */
     public function run()
     {
-        $this->check_request_method('GET');
-    }
 
-    /**
-     * Check if request method is equals to the one given as param or exit after giving an 405 error
-     * @param string $method
-     */
-    protected function check_request_method($method)
-    {
-        if($_SERVER['REQUEST_METHOD'] !== $method) {
-            $this->error(405, 'method not allowed');
-        }
+        $this->request->check_method('GET');
+        $this->request->handle();
     }
 }
